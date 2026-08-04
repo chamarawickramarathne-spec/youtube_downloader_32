@@ -1,0 +1,11 @@
+node_modules/
+out/
+release/
+resources/yt-dlp.exe
+resources/ffmpeg.exe
+resources/ffmpeg.zip
+dist-electron/
+*.log
+.DS_Store
+Thumbs.db
+Youtube Fetcher Sell/*.zip.*

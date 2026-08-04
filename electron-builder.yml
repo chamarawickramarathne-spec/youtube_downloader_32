@@ -1,0 +1,27 @@
+appId: com.youtube-fetcher
+productName: YouTube Fetcher
+directories:
+  buildResources: build
+  output: release
+files:
+  - '!**/.vscode/*'
+  - '!src/*'
+  - '!electron.vite.config.{js,ts,mjs,cjs}'
+  - '!{.eslintignore,.eslintrc.cjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}'
+  - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
+  - '!node_modules/bufferutil/**'
+  - '!node_modules/utf-8-validate/**'
+asarUnpack:
+  - resources/**
+npmRebuild: false
+win:
+  executableName: youtube-fetcher
+  target:
+    - target: nsis
+      arch:
+        - ia32
+nsis:
+  artifactName: ${name}-${version}-setup.${ext}
+  shortcutName: ${productName}
+  uninstallDisplayName: ${productName}
+  createDesktopShortcut: always
