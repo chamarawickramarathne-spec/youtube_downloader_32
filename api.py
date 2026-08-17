@@ -222,10 +222,20 @@ class Api:
             bat_path = os.path.join(tempfile.gettempdir(), 'ytf_update.bat')
             with open(bat_path, 'w', encoding='utf-8') as f:
                 f.write('@echo off\n')
-                f.write('timeout /t 3 /nobreak >nul\n')
-                f.write(f'"{tmp_path}" /SILENT /DIR="{install_dir}" /RESTARTAPPLICATIONS\n')
+                f.write('ping -n 4 127.0.0.1 >nul 2>&1\n')
+                f.write(f'start "" "{tmp_path}" /SILENT /DIR="{install_dir}" /RESTARTAPPLICATIONS\n')
                 f.write(f'del /f "{bat_path}" >nul 2>&1\n')
-            os.startfile(bat_path)
+            CREATE_BREAKAWAY_FROM_JOB = 0x01000000
+            flags = (subprocess.CREATE_NEW_PROCESS_GROUP |
+                     subprocess.DETACHED_PROCESS |
+                     CREATE_BREAKAWAY_FROM_JOB)
+            subprocess.Popen(
+                ['cmd.exe', '/c', bat_path],
+                creationflags=flags,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                stdin=subprocess.DEVNULL,
+            )
             time.sleep(1)
             os._exit(0)
         except Exception as e:
