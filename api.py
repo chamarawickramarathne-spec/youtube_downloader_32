@@ -219,12 +219,14 @@ class Api:
             self._js_call('window._onUpdateProgress("Installing update...")')
 
             install_dir = os.path.dirname(exe_path)
-            flags = subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP
-            subprocess.Popen([tmp_path, '/SILENT', f'/DIR={install_dir}',
-                              '/RESTARTAPPLICATIONS'],
-                             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-                             creationflags=flags)
-            time.sleep(3)
+            bat_path = os.path.join(tempfile.gettempdir(), 'ytf_update.bat')
+            with open(bat_path, 'w', encoding='utf-8') as f:
+                f.write('@echo off\n')
+                f.write('timeout /t 3 /nobreak >nul\n')
+                f.write(f'"{tmp_path}" /SILENT /DIR="{install_dir}" /RESTARTAPPLICATIONS\n')
+                f.write(f'del /f "{bat_path}" >nul 2>&1\n')
+            os.startfile(bat_path)
+            time.sleep(1)
             os._exit(0)
         except Exception as e:
             return {'success': False, 'message': str(e)}
