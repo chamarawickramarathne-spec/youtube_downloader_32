@@ -1,11 +1,12 @@
-# YouTube Fetcher 32-bit - AGENTS.md
+# YouTube Fetcher - AGENTS.md
 
 ## App Info
 - **Name:** YouTube Fetcher
-- **Type:** Electron desktop app (32-bit / ia32)
+- **Type:** Python desktop app (pywebview + HTML/CSS/JS)
 - **Target:** Windows 7/8/8.1/10/11 (32-bit and 64-bit)
-- **Electron:** 22.3.27 (last version with Win7/8 support)
-- **Architecture:** ia32 (32-bit)
+- **Python:** 3.10+
+- **pywebview:** 6.x (Edge WebView2 on Windows)
+- **Packaging:** PyInstaller (single .exe)
 
 ## Modification Log
 
@@ -20,3 +21,40 @@
 - Added esbuild target `node16` in electron.vite.config.ts for Electron 22 compat
 - Version bumped to 1.1.0
 - Build output: release/youtube-fetcher-1.1.0-setup.exe (32-bit NSIS installer)
+
+### Mod 2 - 2026-08-17: Migrate from Electron to Python + pywebview
+- **Reason:** Electron installer was 390MB (blank screen issue, too large for simple app)
+- **New stack:** Python + pywebview 6.x + vanilla HTML/CSS/JS
+- **Files created:**
+  - `main.py` — pywebview window entry point
+  - `api.py` — Python API class exposed to JS via pywebview bridge
+  - `ytdlp_manager.py` — yt-dlp subprocess management + progress parsing
+  - `history.py` — Download history persistence (JSON)
+  - `settings.py` — App settings persistence (JSON)
+  - `utils.py` — Filename sanitization, path utilities
+  - `web/index.html` — HTML layout (same dark UI)
+  - `web/styles.css` — Dark theme CSS (converted from Tailwind)
+  - `web/app.js` — Full application logic (vanilla JS)
+  - `requirements.txt` — Python dependencies
+  - `build.bat` — PyInstaller build script
+- **Size reduction:** 390MB (Electron) → ~40MB (Python + pywebview)
+- **Key changes:**
+  - Replaced Electron IPC with pywebview `window.pywebview.api.*` bridge
+  - Replaced React with vanilla JS (no build step needed)
+  - Replaced Tailwind CSS with plain CSS (same dark theme)
+  - Replaced localStorage with JSON files via Python backend
+  - Progress updates via `window.evaluate_js()` from Python threads
+  - History/settings stored in `%APPDATA%/YouTube Fetcher/`
+- **Old Electron files:** `src/`, `electron/`, `node_modules/`, `package.json`, etc. removed
+
+### Mod 3 - 2026-08-17: Add version display and auto-update feature
+- **New file:** `version.py` — APP_VERSION = '1.2.0', GITHUB_REPO constant
+- **Backend:** `api.py` — Added `get_version()`, `check_update()`, `download_update()` methods
+  - Checks GitHub releases API for newer version
+  - Downloads new exe from release assets
+  - Replaces current exe via batch script and restarts
+- **Frontend:** Version badge next to title, blue "Update" button when update available
+  - `web/index.html` — Added `#header-left` with version badge and update button
+  - `web/styles.css` — Added `.version-badge`, `.btn-update`, `.update-progress` styles
+  - `web/app.js` — Added `checkForUpdate()`, update button click handler, `_onUpdateProgress` callback
+- **Build:** `build.bat` updated with correct Python 3.12-32 path and all hidden imports

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YouTube Fetcher</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Header -->
+    <header id="header">
+      <div id="header-left">
+        <h1 id="title">YouTube Fetcher</h1>
+        <span id="version-badge" class="version-badge">v1.2.0</span>
+        <button id="update-btn" class="btn-update hidden" title="Update available">
+          <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+          Update
+        </button>
+        <span id="update-progress" class="update-progress hidden"></span>
+      </div>
+      <div id="header-right">
+        <span id="active-count" class="hidden"></span>
+
+        <div id="settings-wrap" data-settings>
+          <button id="settings-btn" title="Settings">
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+          </button>
+          <div id="settings-panel" class="hidden">
+            <label class="setting-label">Max parallel downloads</label>
+            <div class="slider-row">
+              <input type="range" id="max-concurrent" min="1" max="10" value="1">
+              <span id="max-concurrent-val">1</span>
+            </div>
+            <p id="concurrent-hint" class="hint">Downloads run one at a time (queued)</p>
+
+            <label class="setting-label">Save videos to</label>
+            <div class="save-path-row">
+              <span id="save-path-display" class="save-path-text" title="Default (Downloads/YouTube Fetcher)">Default</span>
+              <button id="browse-btn" class="btn-secondary">Browse</button>
+            </div>
+            <button id="reset-path-btn" class="link-btn hidden">Reset to default</button>
+          </div>
+        </div>
+
+        <button id="download-all-btn" class="btn-green hidden">Download All (<span id="ready-count">0</span>)</button>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main id="main">
+      <!-- URL Input -->
+      <form id="url-form" class="url-form">
+        <input type="text" id="url-input" placeholder="Paste YouTube URL here..." autocomplete="off">
+        <button type="submit" id="fetch-btn" class="btn-red">Fetch</button>
+      </form>
+
+      <!-- Active Items -->
+      <div id="active-list"></div>
+
+      <!-- History Section -->
+      <div id="history-section" class="hidden">
+        <button id="history-toggle" class="history-toggle">
+          <svg id="history-arrow" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+          <span>History (<span id="history-count">0</span>)</span>
+          <button id="clear-history-btn" class="link-btn">Clear all</button>
+        </button>
+        <div id="history-list" class="hidden"></div>
+      </div>
+
+      <!-- Empty State -->
+      <div id="empty-state" class="empty-state hidden">
+        <p>Paste a YouTube URL above and click Fetch</p>
+        <p class="hint">Click the input field to auto-paste from clipboard</p>
+      </div>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

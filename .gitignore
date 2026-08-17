@@ -1,11 +1,38 @@
-node_modules/
-out/
-release/
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+*.spec
+
+# Resources (downloaded binaries)
 resources/yt-dlp.exe
 resources/ffmpeg.exe
 resources/ffmpeg.zip
-dist-electron/
-*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
 .DS_Store
 Thumbs.db
-Youtube Fetcher Sell/*.zip.*
+Desktop.ini
+
+# App data (local only)
+*.log
+
+# Old Electron (cleanup)
+out/
+release/
+node_modules/
+dist-electron/
+
+# Sell folder
+Youtube Fetcher Sell/

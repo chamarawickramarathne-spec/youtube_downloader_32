@@ -1,0 +1,18 @@
+YouTube Fetcher
+
+A lightweight desktop application to fetch and download YouTube videos in various qualities and formats.
+
+YouTube Fetcher is a fast, lightweight Windows desktop app that lets you download YouTube videos and audio in multiple formats. Simply paste a YouTube URL, choose your quality (up to 4K), and download. Supports batch downloads with parallel processing, resume/pause, and a clean dark interface. Built with Python and pywebview for a tiny ~40MB footprint — no bloat, just fast downloads powered by yt-dlp.
+
+YouTube Fetcher is a fast, lightweight Windows desktop app that lets you download YouTube videos and audio in multiple qualities and formats. Simply paste a YouTube URL, choose your quality (from audio-only to best quality), and download with one click. Features include parallel batch downloads, pause/resume support, clipboard auto-paste, customizable save location, and a clean dark interface. Built with Python and pywebview, the entire app is just ~40MB — dramatically smaller than Electron-based alternatives. Powered by yt-dlp for reliable, fast downloads with automatic retry and bot-detection bypass. Works on Windows 7/8/10/11 (32-bit and 64-bit).
+
+Download YouTube videos easily with YouTube Fetcher — a lightweight, fast Windows app. Paste a URL, pick your quality, and download. Supports batch downloads, pause/resume, and multiple formats. Only ~40MB!
+
+Check out YouTube Fetcher — a super lightweight YouTube video downloader for Windows. Paste any YouTube link, choose your quality (audio to 4K), and download instantly. Supports batch downloads, pause/resume, and customizable save folders. At just ~40MB, it's the smallest YouTube downloader you'll find. Works on Windows 7/10/11. #YouTubeDownloader #VideoDownloader #LightweightApp #WindowsApp #yt-dlp #FreeSoftware #DownloadManager #YouTube #MediaDownloader #DesktopApp
+
+5 image prompts for AI-generated social media images:
+1. A sleek dark-themed desktop app window showing a YouTube video download in progress, with a red progress bar at 67%, modern minimal UI design, neon accents on dark background, professional software screenshot style
+2. Split comparison image: left side shows a massive 390MB installer icon labeled "Before", right side shows a tiny 40MB feather icon labeled "After", dark tech background, clean infographic style
+3. A modern laptop screen displaying a dark-themed video downloader app with a list of YouTube videos being downloaded simultaneously, green checkmarks on completed items, tech lifestyle photography style
+4. Abstract visualization of speed and lightweight design: a paper airplane made of code flying through a digital landscape, dark purple and red color scheme, minimalist tech art
+5. A clean dashboard-style graphic showing download stats: "390MB → 40MB", "10x Smaller", "Python + pywebview", dark gradient background with glowing red accents, modern tech infographic
