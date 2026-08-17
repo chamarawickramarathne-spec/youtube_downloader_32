@@ -1,6 +1,6 @@
 [Setup]
 AppName=YouTube Fetcher
-AppVersion=1.2.0
+AppVersion=1.2.1
 AppPublisher=YouTube Fetcher
 DefaultDirName={autopf}\YouTube Fetcher
 DefaultGroupName=YouTube Fetcher
