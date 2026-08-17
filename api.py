@@ -218,26 +218,12 @@ class Api:
 
             self._js_call('window._onUpdateProgress("Installing update...")')
 
-            exe_name = os.path.basename(exe_path)
             install_dir = os.path.dirname(exe_path)
-
-            subprocess.Popen(['taskkill', '/f', '/im', exe_name],
-                             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            for _ in range(30):
-                time.sleep(1)
-                try:
-                    out = subprocess.check_output(
-                        ['tasklist', '/fi', f'imagename eq {exe_name}'],
-                        stderr=subprocess.DEVNULL).decode('utf-8', errors='ignore')
-                    if exe_name.lower() not in out.lower():
-                        break
-                except Exception:
-                    break
 
             subprocess.Popen([tmp_path, '/SILENT', f'/DIR={install_dir}',
                               '/RESTARTAPPLICATIONS'],
                              stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            time.sleep(2)
+            time.sleep(3)
             os._exit(0)
         except Exception as e:
             return {'success': False, 'message': str(e)}
