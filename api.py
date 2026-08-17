@@ -188,7 +188,7 @@ class Api:
             return {'available': False, 'error': str(e)}
 
     def download_update(self, download_url):
-        """Download new exe, replace current, and restart."""
+        """Download new exe, uninstall old, install new, and restart."""
         try:
             exe_path = sys.executable
             if getattr(sys, 'frozen', False):
@@ -215,13 +215,20 @@ class Api:
                             pct = int(downloaded * 100 / total)
                             self._js_call(f'window._onUpdateProgress("Downloading... {pct}%")')
 
-            self._js_call('window._onUpdateProgress("Installing update...")')
+            self._js_call('window._onUpdateProgress("Uninstalling old version...")')
 
+            exe_name = os.path.basename(exe_path)
             bat_path = os.path.join(tempfile.gettempdir(), 'YouTubeFetcher_update.bat')
             bat_content = f'''@echo off
-timeout /t 2 /nobreak >nul
-del /f "{exe_path}"
-move /y "{tmp_path}" "{exe_path}"
+echo Uninstalling old version...
+taskkill /f /im "{exe_name}" >nul 2>&1
+:waitloop
+timeout /t 1 /nobreak >nul
+if exist "{exe_path}" goto waitloop
+echo Installing new version...
+copy /y "{tmp_path}" "{exe_path}" >nul
+del /f "{tmp_path}" >nul 2>&1
+echo Starting new version...
 start "" "{exe_path}"
 del /f "%~f0"
 '''

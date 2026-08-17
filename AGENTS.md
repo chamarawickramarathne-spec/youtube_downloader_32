@@ -58,3 +58,9 @@
   - `web/styles.css` — Added `.version-badge`, `.btn-update`, `.update-progress` styles
   - `web/app.js` — Added `checkForUpdate()`, update button click handler, `_onUpdateProgress` callback
 - **Build:** `build.bat` updated with correct Python 3.12-32 path and all hidden imports
+
+### Mod 4 - 2026-08-17: Robust auto-update (force-kill + wait loop)
+- **File changed:** `api.py` — `download_update()` method
+- **Improvement:** Batch script now force-kills old process, waits in a loop until file deleted, then copies new exe
+- **Old behavior:** `timeout /t 2` then `del /f` (unreliable if process didn't exit in time)
+- **New behavior:** `taskkill /f /im` → wait loop polling `if exist` → `copy /y` new exe
