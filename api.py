@@ -223,7 +223,10 @@ class Api:
             bat_content = f'''@echo off
 echo Closing YouTube Fetcher...
 taskkill /f /im "{exe_name}" >nul 2>&1
-timeout /t 2 /nobreak >nul
+:waitloop
+timeout /t 1 /nobreak >nul
+tasklist /fi "imagename eq {exe_name}" | find /i "{exe_name}" >nul 2>&1
+if not errorlevel 1 goto waitloop
 echo Installing update...
 "{tmp_path}" /SILENT /DIR="{install_dir}" /RESTARTAPPLICATIONS
 del /f "{tmp_path}" >nul 2>&1
