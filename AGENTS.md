@@ -64,3 +64,5 @@
 - **Improvement:** Batch script now force-kills old process, waits in a loop until file deleted, then copies new exe
 - **Old behavior:** `timeout /t 2` then `del /f` (unreliable if process didn't exit in time)
 - **New behavior:** `taskkill /f /im` → wait loop polling `if exist` → `copy /y` new exe
+- **Installer:** Created Inno Setup installer (`installer.iss`), output: `release/youtube-fetcher-1.2.0-setup.exe` (93MB)
+- **Update feature updated:** Now downloads and runs the installer silently (`/SILENT /DIR=... /RESTARTAPPLICATIONS`) instead of replacing exe directly

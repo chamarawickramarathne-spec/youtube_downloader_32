@@ -188,7 +188,7 @@ class Api:
             return {'available': False, 'error': str(e)}
 
     def download_update(self, download_url):
-        """Download new exe, uninstall old, install new, and restart."""
+        """Download installer, run silent install, and restart."""
         try:
             exe_path = sys.executable
             if getattr(sys, 'frozen', False):
@@ -196,11 +196,11 @@ class Api:
             else:
                 return {'success': False, 'message': 'Not running as exe'}
 
-            tmp_path = os.path.join(tempfile.gettempdir(), 'YouTubeFetcher_new.exe')
+            tmp_path = os.path.join(tempfile.gettempdir(), 'YouTubeFetcher_setup.exe')
             self._js_call('window._onUpdateProgress("Downloading update...")')
 
             req = urllib.request.Request(download_url, headers={'User-Agent': f'{APP_NAME}/{APP_VERSION}'})
-            with urllib.request.urlopen(req, timeout=120) as resp:
+            with urllib.request.urlopen(req, timeout=300) as resp:
                 total = int(resp.headers.get('Content-Length', 0))
                 downloaded = 0
                 chunk_size = 1024 * 1024
@@ -215,21 +215,18 @@ class Api:
                             pct = int(downloaded * 100 / total)
                             self._js_call(f'window._onUpdateProgress("Downloading... {pct}%")')
 
-            self._js_call('window._onUpdateProgress("Uninstalling old version...")')
+            self._js_call('window._onUpdateProgress("Installing update...")')
 
             exe_name = os.path.basename(exe_path)
             bat_path = os.path.join(tempfile.gettempdir(), 'YouTubeFetcher_update.bat')
+            install_dir = os.path.dirname(exe_path)
             bat_content = f'''@echo off
-echo Uninstalling old version...
+echo Closing YouTube Fetcher...
 taskkill /f /im "{exe_name}" >nul 2>&1
-:waitloop
-timeout /t 1 /nobreak >nul
-if exist "{exe_path}" goto waitloop
-echo Installing new version...
-copy /y "{tmp_path}" "{exe_path}" >nul
+timeout /t 2 /nobreak >nul
+echo Installing update...
+"{tmp_path}" /SILENT /DIR="{install_dir}" /RESTARTAPPLICATIONS
 del /f "{tmp_path}" >nul 2>&1
-echo Starting new version...
-start "" "{exe_path}"
 del /f "%~f0"
 '''
             with open(bat_path, 'w') as f:
