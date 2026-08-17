@@ -219,10 +219,11 @@ class Api:
             self._js_call('window._onUpdateProgress("Installing update...")')
 
             install_dir = os.path.dirname(exe_path)
-
+            flags = subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP
             subprocess.Popen([tmp_path, '/SILENT', f'/DIR={install_dir}',
                               '/RESTARTAPPLICATIONS'],
-                             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                             creationflags=flags)
             time.sleep(3)
             os._exit(0)
         except Exception as e:
