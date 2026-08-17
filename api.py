@@ -1,6 +1,7 @@
 import json
 import os
 import sys
+import time
 import threading
 import urllib.request
 import urllib.error
@@ -218,24 +219,25 @@ class Api:
             self._js_call('window._onUpdateProgress("Installing update...")')
 
             exe_name = os.path.basename(exe_path)
-            bat_path = os.path.join(tempfile.gettempdir(), 'YouTubeFetcher_update.bat')
             install_dir = os.path.dirname(exe_path)
-            bat_content = f'''@echo off
-echo Closing YouTube Fetcher...
-taskkill /f /im "{exe_name}" >nul 2>&1
-:waitloop
-timeout /t 1 /nobreak >nul
-tasklist /fi "imagename eq {exe_name}" | find /i "{exe_name}" >nul 2>&1
-if not errorlevel 1 goto waitloop
-echo Installing update...
-"{tmp_path}" /SILENT /DIR="{install_dir}" /RESTARTAPPLICATIONS
-del /f "{tmp_path}" >nul 2>&1
-del /f "%~f0"
-'''
-            with open(bat_path, 'w') as f:
-                f.write(bat_content)
 
-            subprocess.Popen([bat_path], shell=True, creationflags=getattr(subprocess, 'DETACHED_PROCESS', 0))
+            subprocess.Popen(['taskkill', '/f', '/im', exe_name],
+                             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            for _ in range(30):
+                time.sleep(1)
+                try:
+                    out = subprocess.check_output(
+                        ['tasklist', '/fi', f'imagename eq {exe_name}'],
+                        stderr=subprocess.DEVNULL).decode('utf-8', errors='ignore')
+                    if exe_name.lower() not in out.lower():
+                        break
+                except Exception:
+                    break
+
+            subprocess.Popen([tmp_path, '/SILENT', f'/DIR={install_dir}',
+                              '/RESTARTAPPLICATIONS'],
+                             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            time.sleep(2)
             os._exit(0)
         except Exception as e:
             return {'success': False, 'message': str(e)}
