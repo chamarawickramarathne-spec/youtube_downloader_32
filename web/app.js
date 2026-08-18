@@ -182,6 +182,14 @@
     }
   };
 
+  window._onLog = function (data) {
+    const item = items.find(i => i.id === data.downloadId);
+    if (item && data.message && data.message.includes('Retrying')) {
+      item.error = data.message;
+      updateRow(item);
+    }
+  };
+
   // ── Queue Processing ──
   function processQueue() {
     const active = items.filter(i => i.status === 'downloading').length;

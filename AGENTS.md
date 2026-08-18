@@ -66,3 +66,24 @@
 - **New behavior:** `taskkill /f /im` → wait loop polling `if exist` → `copy /y` new exe
 - **Installer:** Created Inno Setup installer (`installer.iss`), output: `release/youtube-fetcher-1.2.0-setup.exe` (93MB)
 - **Update feature updated:** Now downloads and runs the installer silently (`/SILENT /DIR=... /RESTARTAPPLICATIONS`) instead of replacing exe directly
+
+### Mod 5 - 2026-08-18: Better error handling for yt-dlp download failures
+- **Files changed:** `ytdlp_manager.py`, `web/app.js`
+- **Problem:** Download failures showed generic "yt-dlp exited with code 1" with no useful context
+- **Changes:**
+  - `ytdlp_manager.py` — `read_stderr()` now accumulates all stderr lines into `stderr_output` list
+  - Added `_parse_error()` static method — extracts the most useful error line (prefers `ERROR:` prefixed lines)
+  - Added `_is_retriable()` static method — classifies errors as retriable vs permanent (bot detection, private video, unavailable, etc.)
+  - Download retry logic now skips retries for non-retriable errors (saves time)
+  - Error messages now show actual yt-dlp output (e.g., "Sign in to confirm you're not a bot")
+  - `web/app.js` — Added `window._onLog` handler to display retry notifications in the UI
+
+### Mod 6 - 2026-08-18: Auto-retry downloads with alternate YouTube clients
+- **Files changed:** `ytdlp_manager.py`
+- **Problem:** Downloads failed with "Requested format is not available" because `web,mweb` client needs a JavaScript runtime for signature solving (not installed). Fetch succeeded via `android` client but download always hardcoded `web,mweb`.
+- **Changes:**
+  - Added `_working_extractor_args` to track which extractor args worked during fetch
+  - `fetch_video_info` now always tries all extractor-args bypass strategies (not just on bot detection)
+  - `_execute_download` uses stored extractor args instead of hardcoded `web,mweb`
+  - Added `extractor_idx` parameter to cycle through clients (web,mweb → android → ios → tv) on format/403 errors
+  - Format error detection triggers automatic client switching before retrying

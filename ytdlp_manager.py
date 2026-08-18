@@ -25,6 +25,7 @@ class YtdlpManager:
         self._ytdlp = get_ytdlp_path()
         self._ffmpeg = get_ffmpeg_dir()
         self._working_browser = None
+        self._working_extractor_args = None
         self._processes = {}
         self._lock = threading.Lock()
         self._window = None
@@ -110,8 +111,39 @@ class YtdlpManager:
             return False
         return any(kw in error for kw in ['DPAPI', 'decrypt', 'Could not copy', 'could not find'])
 
+    @staticmethod
+    def _parse_error(stderr_lines):
+        """Extract the most useful error message from yt-dlp stderr."""
+        if not stderr_lines:
+            return None
+        for line in reversed(stderr_lines):
+            if 'ERROR:' in line:
+                msg = line.split('ERROR:', 1)[1].strip()
+                if msg:
+                    return msg
+        for line in reversed(stderr_lines):
+            if any(kw in line.lower() for kw in ['error', 'failed', 'unable', 'cannot']):
+                return line
+        return stderr_lines[-1] if stderr_lines else None
+
+    @staticmethod
+    def _is_retriable(error_msg):
+        """Check if an error is worth retrying."""
+        if not error_msg:
+            return True
+        non_retriable = [
+            'Sign in to confirm', 'bot', 'login', 'private video',
+            'Video unavailable', 'This video is not available',
+            'Premiere will begin', 'is live streaming',
+            'Unsupported URL', 'is not a valid URL',
+            'No video found', 'File already downloaded',
+        ]
+        return not any(kw in error_msg for kw in non_retriable)
+
     def fetch_video_info(self, url):
         """Fetch video metadata with multi-strategy approach."""
+        self._working_extractor_args = None
+
         # 1. Try cached browser
         if self._working_browser:
             ok, data, err = self._run_once(url, ['--cookies-from-browser', self._working_browser])
@@ -127,12 +159,13 @@ class YtdlpManager:
 
         is_bot = self._is_bot_detection(err)
 
-        # 3. Extractor-args bypass (if bot detected)
-        if is_bot:
-            for attempt in EXTRACTOR_BYPASS:
+        # 3. Extractor-args bypass
+        for attempt in EXTRACTOR_BYPASS:
+            if is_bot or True:
                 ok, data, _ = self._run_once(url, attempt['args'])
                 if ok:
                     self._working_browser = ''
+                    self._working_extractor_args = attempt['args']
                     return data
 
         # 4. Parallel browser cookie probing
@@ -161,7 +194,7 @@ class YtdlpManager:
         """Start a download in a background thread."""
         if window:
             self._window = window
-        t = threading.Thread(target=self._execute_download, args=(download_id, url, format_id, title, output_dir, 0))
+        t = threading.Thread(target=self._execute_download, args=(download_id, url, format_id, title, output_dir, 0, 0))
         t.daemon = True
         t.start()
 
@@ -176,7 +209,7 @@ class YtdlpManager:
                 pass
             self._emit_error(download_id, 'Cancelled')
 
-    def _execute_download(self, download_id, url, format_id, title, output_dir, attempt):
+    def _execute_download(self, download_id, url, format_id, title, output_dir, attempt, extractor_idx=0):
         downloads_dir = output_dir or os.path.join(os.path.expanduser('~'), 'Downloads', 'YouTube Fetcher')
         os.makedirs(downloads_dir, exist_ok=True)
 
@@ -188,7 +221,10 @@ class YtdlpManager:
             args.extend(['--merge-output-format', 'mp4'])
         else:
             h = format_id.replace('p', '')
-            args.extend(['-f', f'bestvideo[height<={h}]+bestaudio/best[height<={h}]/best'])
+            if h.isdigit():
+                args.extend(['-f', f'bestvideo[height<={h}]+bestaudio/best/bestvideo+bestaudio/best'])
+            else:
+                args.extend(['-f', f'{format_id}+bestaudio/best/{format_id}/best'])
             args.extend(['--merge-output-format', 'mp4'])
 
         # Quality label for filename
@@ -218,6 +254,8 @@ class YtdlpManager:
 
         if self._working_browser:
             args.extend(['--cookies-from-browser', self._working_browser])
+        elif extractor_idx < len(EXTRACTOR_BYPASS):
+            args.extend(EXTRACTOR_BYPASS[extractor_idx]['args'])
         else:
             args.extend(['--extractor-args', 'youtube:player_client=web,mweb'])
 
@@ -238,6 +276,7 @@ class YtdlpManager:
 
         tracked_path = ''
         start_time = time.time()
+        stderr_output = []
 
         def read_stdout():
             nonlocal tracked_path
@@ -271,6 +310,8 @@ class YtdlpManager:
                     if not line:
                         break
                     line = line.decode('utf-8', errors='replace').strip()
+                    if line:
+                        stderr_output.append(line)
                     if any(kw in line for kw in ['ERROR', 'error', 'Merge', 'ffmpeg']):
                         self._emit_log(download_id, line)
             except Exception:
@@ -301,9 +342,20 @@ class YtdlpManager:
         if proc.returncode == 0:
             self._emit_complete(download_id, tracked_path)
         else:
-            if attempt < MAX_RETRIES:
+            error_detail = self._parse_error(stderr_output)
+            is_format_error = error_detail and ('format is not available' in error_detail.lower() or 'no video' in error_detail.lower() or '403' in error_detail)
+
+            if is_format_error and extractor_idx < len(EXTRACTOR_BYPASS) - 1:
+                next_idx = extractor_idx + 1
+                self._emit_log(download_id, f'Trying alternate client: {EXTRACTOR_BYPASS[next_idx]["label"]}...')
+                time.sleep(1)
+                self._execute_download(download_id, url, format_id, title, output_dir, 0, next_idx)
+            elif attempt < MAX_RETRIES:
+                if error_detail and not self._is_retriable(error_detail):
+                    self._emit_error(download_id, error_detail)
+                    return
                 self._emit_log(download_id, f'Retrying... (attempt {attempt + 2}/{MAX_RETRIES + 1})')
                 time.sleep(RETRY_DELAY)
-                self._execute_download(download_id, url, format_id, title, output_dir, attempt + 1)
+                self._execute_download(download_id, url, format_id, title, output_dir, attempt + 1, extractor_idx)
             else:
-                self._emit_error(download_id, f'yt-dlp exited with code {proc.returncode}')
+                self._emit_error(download_id, error_detail or f'yt-dlp exited with code {proc.returncode}')
